@@ -3,7 +3,7 @@
 Plugin Name: WP-WebAuthn
 Plugin URI: https://flyhigher.top
 Description: WP-WebAuthn allows you to safely login to your WordPress site without password.
-Version: 1.3.1
+Version: 1.3.2
 Author: Axton
 Author URI: https://axton.cc
 License: GPLv3
@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with thi
 register_activation_hook(__FILE__, 'wwa_init');
 
 function wwa_init(){
-    if(version_compare(get_bloginfo('version'), '4.4', '<')){
+    if(version_compare(get_bloginfo('version'), '5.0', '<')){
         deactivate_plugins(basename(__FILE__)); //disable
     }else{
         wwa_init_data();
@@ -32,7 +32,7 @@ wwa_init_data();
 function wwa_init_data(){
     if(!get_option('wwa_init')){
         // Init
-        $site_domain = parse_url(site_url(), PHP_URL_HOST);
+        $site_domain = wp_parse_url(site_url(), PHP_URL_HOST);
         $wwa_init_options = array(
             'user_credentials' => '{}',
             'user_credentials_meta' => '{}',
@@ -53,7 +53,7 @@ function wwa_init_data(){
         include('wwa-version.php');
         update_option('wwa_version', $wwa_version);
         update_option('wwa_log', array());
-        update_option('wwa_init', md5(date('Y-m-d H:i:s')));
+        update_option('wwa_init', md5(date('Y-m-d H:i:s'))); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
     }else{
         include('wwa-version.php');
         if(!get_option('wwa_version') || get_option('wwa_version')['version'] != $wwa_version['version']){
