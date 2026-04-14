@@ -104,12 +104,12 @@ class ComposerStaticInite99fdfd0dbb5e609b534e430fe6b54ef
     );
 
     public static $prefixLengthsPsr4 = array (
-        'W' => 
+        'W' =>
         array (
             'Webauthn\\MetadataService\\' => 25,
             'Webauthn\\' => 9,
         ),
-        'S' => 
+        'S' =>
         array (
             'Symfony\\Polyfill\\Php81\\' => 23,
             'Symfony\\Polyfill\\Php80\\' => 23,
@@ -117,157 +117,157 @@ class ComposerStaticInite99fdfd0dbb5e609b534e430fe6b54ef
             'Symfony\\Component\\Process\\' => 26,
             'Safe\\' => 5,
         ),
-        'R' => 
+        'R' =>
         array (
             'Ramsey\\Uuid\\' => 12,
             'Ramsey\\Collection\\' => 18,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
         ),
-        'N' => 
+        'N' =>
         array (
             'Nyholm\\Psr7\\' => 12,
             'Nyholm\\Psr7Server\\' => 18,
         ),
-        'L' => 
+        'L' =>
         array (
             'League\\Uri\\' => 11,
         ),
-        'J' => 
+        'J' =>
         array (
             'Jose\\Component\\Signature\\Algorithm\\' => 35,
             'Jose\\Component\\Signature\\' => 25,
             'Jose\\Component\\KeyManagement\\' => 29,
             'Jose\\Component\\Core\\' => 20,
         ),
-        'F' => 
+        'F' =>
         array (
             'FG\\' => 3,
         ),
-        'C' => 
+        'C' =>
         array (
             'Cose\\' => 5,
             'CBOR\\' => 5,
         ),
-        'B' => 
+        'B' =>
         array (
             'Brick\\Math\\' => 11,
             'Base64Url\\' => 10,
         ),
-        'A' => 
+        'A' =>
         array (
             'Assert\\' => 7,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Webauthn\\MetadataService\\' => 
+        'Webauthn\\MetadataService\\' =>
         array (
             0 => __DIR__ . '/..' . '/web-auth/metadata-service/src',
         ),
-        'Webauthn\\' => 
+        'Webauthn\\' =>
         array (
             0 => __DIR__ . '/..' . '/web-auth/webauthn-lib/src',
         ),
-        'Symfony\\Polyfill\\Php81\\' => 
+        'Symfony\\Polyfill\\Php81\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php81',
         ),
-        'Symfony\\Polyfill\\Php80\\' => 
+        'Symfony\\Polyfill\\Php80\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
         ),
-        'Symfony\\Polyfill\\Ctype\\' => 
+        'Symfony\\Polyfill\\Ctype\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
-        'Symfony\\Component\\Process\\' => 
+        'Symfony\\Component\\Process\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
         ),
-        'Safe\\' => 
+        'Safe\\' =>
         array (
             0 => __DIR__ . '/..' . '/thecodingmachine/safe/lib',
             1 => __DIR__ . '/..' . '/thecodingmachine/safe/deprecated',
             2 => __DIR__ . '/..' . '/thecodingmachine/safe/generated',
         ),
-        'Ramsey\\Uuid\\' => 
+        'Ramsey\\Uuid\\' =>
         array (
             0 => __DIR__ . '/..' . '/ramsey/uuid/src',
         ),
-        'Ramsey\\Collection\\' => 
+        'Ramsey\\Collection\\' =>
         array (
             0 => __DIR__ . '/..' . '/ramsey/collection/src',
         ),
-        'Psr\\Log\\' => 
+        'Psr\\Log\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
-        'Psr\\Http\\Message\\' => 
+        'Psr\\Http\\Message\\' =>
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
-        'Psr\\Http\\Client\\' => 
+        'Psr\\Http\\Client\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
-        'Nyholm\\Psr7\\' => 
+        'Nyholm\\Psr7\\' =>
         array (
             0 => __DIR__ . '/..' . '/nyholm/psr7/src',
         ),
-        'Nyholm\\Psr7Server\\' => 
+        'Nyholm\\Psr7Server\\' =>
         array (
             0 => __DIR__ . '/..' . '/nyholm/psr7-server/src',
         ),
-        'League\\Uri\\' => 
+        'League\\Uri\\' =>
         array (
-            0 => __DIR__ . '/..' . '/league/uri-interfaces/src',
-            1 => __DIR__ . '/..' . '/league/uri/src',
+            0 => __DIR__ . '/..' . '/league/uri/src',
+            1 => __DIR__ . '/..' . '/league/uri-interfaces/src',
         ),
-        'Jose\\Component\\Signature\\Algorithm\\' => 
+        'Jose\\Component\\Signature\\Algorithm\\' =>
         array (
-            0 => __DIR__ . '/..' . '/web-token/jwt-signature-algorithm-ecdsa',
+            0 => __DIR__ . '/..' . '/web-token/jwt-signature-algorithm-rsa',
             1 => __DIR__ . '/..' . '/web-token/jwt-signature-algorithm-eddsa',
-            2 => __DIR__ . '/..' . '/web-token/jwt-signature-algorithm-rsa',
+            2 => __DIR__ . '/..' . '/web-token/jwt-signature-algorithm-ecdsa',
         ),
-        'Jose\\Component\\Signature\\' => 
+        'Jose\\Component\\Signature\\' =>
         array (
             0 => __DIR__ . '/..' . '/web-token/jwt-signature',
         ),
-        'Jose\\Component\\KeyManagement\\' => 
+        'Jose\\Component\\KeyManagement\\' =>
         array (
             0 => __DIR__ . '/..' . '/web-token/jwt-key-mgmt',
         ),
-        'Jose\\Component\\Core\\' => 
+        'Jose\\Component\\Core\\' =>
         array (
             0 => __DIR__ . '/..' . '/web-token/jwt-core',
         ),
-        'FG\\' => 
+        'FG\\' =>
         array (
             0 => __DIR__ . '/..' . '/fgrosse/phpasn1/lib',
         ),
-        'Cose\\' => 
+        'Cose\\' =>
         array (
             0 => __DIR__ . '/..' . '/web-auth/cose-lib/src',
         ),
-        'CBOR\\' => 
+        'CBOR\\' =>
         array (
             0 => __DIR__ . '/..' . '/spomky-labs/cbor-php/src',
         ),
-        'Brick\\Math\\' => 
+        'Brick\\Math\\' =>
         array (
             0 => __DIR__ . '/..' . '/brick/math/src',
         ),
-        'Base64Url\\' => 
+        'Base64Url\\' =>
         array (
             0 => __DIR__ . '/..' . '/spomky-labs/base64url/src',
         ),
-        'Assert\\' => 
+        'Assert\\' =>
         array (
             0 => __DIR__ . '/..' . '/beberlei/assert/lib/Assert',
         ),

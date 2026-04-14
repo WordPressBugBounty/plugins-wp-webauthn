@@ -1,5 +1,6 @@
 #wp-webauthn {
     margin-right: 5px;
+    width: 56px;
 }
 #wp-webauthn span {
     line-height: 30px;
@@ -47,8 +48,32 @@
 #loginform.wwa-webauthn-only {
     padding-bottom: 30px;
 }
+#loginform .wwa-passkey-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+#loginform .password-icon {
+    margin-right: 4px;
+}
+#loginform .password-icon::after {
+    display: inline-block;
+    content: "";
+    width: 1px;
+    height: 80%;
+    background-color: currentColor;
+    position: relative;
+    left: 3px;
+    bottom: 10%;
+}
 @media(max-width: 782px){
     #wp-webauthn span {
         line-height: 38px;
+    }
+}
+@media(max-width: 782px){
+    .interim-login #wp-webauthn span {
+        line-height: 30px;
     }
 }

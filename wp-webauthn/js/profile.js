@@ -1,3 +1,5 @@
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" style="enable-background:new 0 0 216 216" viewBox="0 0 216 216" class="wwa-table-svg"><style>.st2{fill-rule:evenodd;clip-rule:evenodd;fill:#818286}</style><g id="Isolation_Mode"><path d="M0 0h216v216H0z" style="fill:none"/><path d="M172.32 96.79c0 13.78-8.48 25.5-20.29 29.78l7.14 11.83-10.57 13 10.57 12.71-17.04 22.87-12.01-12.82V125.7c-10.68-4.85-18.15-15.97-18.15-28.91 0-17.4 13.51-31.51 30.18-31.51 16.66 0 30.17 14.11 30.17 31.51zm-30.18 4.82c4.02 0 7.28-3.4 7.28-7.6 0-4.2-3.26-7.61-7.28-7.61s-7.28 3.4-7.28 7.61c-.01 4.2 3.26 7.6 7.28 7.6z" style="fill-rule:evenodd;clip-rule:evenodd;fill:#a2a1a3"/><path d="M172.41 96.88c0 13.62-8.25 25.23-19.83 29.67l6.58 11.84-9.73 13 9.73 12.71-17.03 23.05v-85.54c4.02 0 7.28-3.41 7.28-7.6 0-4.2-3.26-7.61-7.28-7.61V65.28c16.73 0 30.28 14.15 30.28 31.6zM120.24 131.43c-9.75-8-16.3-20.3-17.2-34.27H50.8c-10.96 0-19.84 9.01-19.84 20.13v25.17c0 5.56 4.44 10.07 9.92 10.07h69.44c5.48 0 9.92-4.51 9.92-10.07v-11.03z" class="st2"/><path d="M73.16 91.13c-2.42-.46-4.82-.89-7.11-1.86-8.65-3.63-13.69-10.32-15.32-19.77-1.12-6.47-.59-12.87 2.03-18.92 3.72-8.6 10.39-13.26 19.15-14.84 5.24-.94 10.46-.73 15.5 1.15 7.59 2.82 12.68 8.26 15.03 16.24 2.38 8.05 2.03 16.1-1.56 23.72-3.72 7.96-10.21 12.23-18.42 13.9-.68.14-1.37.27-2.05.41-2.41-.03-4.83-.03-7.25-.03z" style="fill:#818286"/></g></svg>`;
+
 // Whether the broswer supports WebAuthn
 if (window.PublicKeyCredential === undefined || navigator.credentials.create === undefined || typeof navigator.credentials.create !== 'function') {
     jQuery('#wwa-bind, #wwa-test').attr('disabled', 'disabled');
@@ -24,12 +26,13 @@ function updateList() {
         type: 'GET',
         data: {
             action: 'wwa_authenticator_list',
-            user_id: php_vars.user_id
+            user_id: php_vars.user_id,
+            _ajax_nonce: php_vars._ajax_nonce
         },
         success: function (data) {
             if (typeof data === 'string') {
                 console.warn(data);
-                jQuery('#wwa-authenticator-list').html(`<tr><td colspan="${jQuery('.wwa-usernameless-th').css('display') === 'none' ? '5' : '6'}">${php_vars.i18n_8}</td></tr>`);
+                jQuery('#wwa-authenticator-list').html(`<tr><td colspan="${getColspan()}">${php_vars.i18n_8}</td></tr>`);
                 return;
             }
             if (data.length === 0) {
@@ -38,7 +41,12 @@ function updateList() {
                 } else {
                     jQuery('.wwa-usernameless-th, .wwa-usernameless-td').hide();
                 }
-                jQuery('#wwa-authenticator-list').html(`<tr><td colspan="${jQuery('.wwa-usernameless-th').css('display') === 'none' ? '5' : '6'}">${php_vars.i18n_17}</td></tr>`);
+                if (configs.show_authenticator_type === 'true') {
+                    jQuery('.wwa-type-th, .wwa-type-td').show();
+                } else {
+                    jQuery('.wwa-type-th, .wwa-type-td').hide();
+                }
+                jQuery('#wwa-authenticator-list').html(`<tr><td colspan="${getColspan()}">${php_vars.i18n_17}</td></tr>`);
                 jQuery('#wwa_usernameless_tip').text('');
                 jQuery('#wwa_usernameless_tip').hide();
                 jQuery('#wwa_type_tip').text('');
@@ -59,13 +67,18 @@ function updateList() {
                         item_type_disabled = true;
                     }
                 }
-                htmlStr += `<tr><td>${item.name}</td><td>${item.type === 'none' ? php_vars.i18n_9 : (item.type === 'platform' ? php_vars.i18n_10 : php_vars.i18n_11)}${item_type_disabled ? php_vars.i18n_29 : ''}</td><td>${item.added}</td><td>${item.last_used}</td><td class="wwa-usernameless-td">${item.usernameless ? php_vars.i18n_24 + (configs.usernameless === 'true' ? '' : php_vars.i18n_26) : php_vars.i18n_25}</td><td id="${item.key}"><a href="javascript:renameAuthenticator('${item.key}', '${item.name.replaceAll('\'', '\\\'').replaceAll('&#039;', '\\&#039;').replaceAll('"', '\\"')}')">${php_vars.i18n_20}</a> | <a href="javascript:removeAuthenticator('${item.key}', '${item.name.replaceAll('\'', '\\\'').replaceAll('&#039;', '\\&#039;').replaceAll('"', '\\"')}')">${php_vars.i18n_12}</a></td></tr>`;
+                htmlStr += `<tr><td>${svg}${item.name}</td>${configs.show_authenticator_type === 'true' ? `<td class="wwa-type-td">${item.type === 'none' ? php_vars.i18n_9 : (item.type === 'platform' ? php_vars.i18n_10 : php_vars.i18n_11)}${item_type_disabled ? php_vars.i18n_29 : ''}</td>` : ''}<td>${item.added}</td><td>${item.last_used}</td><td class="wwa-usernameless-td">${item.usernameless ? php_vars.i18n_24 + (configs.usernameless === 'true' ? '' : php_vars.i18n_26) : php_vars.i18n_25}</td><td id="${item.key}"><a href="javascript:renameAuthenticator('${item.key}', '${item.name.replaceAll('\'', '\\\'').replaceAll('&#039;', '\\&#039;').replaceAll('"', '\\"')}')">${php_vars.i18n_20}</a> | <a href="javascript:removeAuthenticator('${item.key}', '${item.name.replaceAll('\'', '\\\'').replaceAll('&#039;', '\\&#039;').replaceAll('"', '\\"')}')">${php_vars.i18n_12}</a></td></tr>`;
             }
             jQuery('#wwa-authenticator-list').html(htmlStr);
             if (has_usernameless || configs.usernameless === 'true') {
                 jQuery('.wwa-usernameless-th, .wwa-usernameless-td').show();
             } else {
                 jQuery('.wwa-usernameless-th, .wwa-usernameless-td').hide();
+            }
+            if (configs.show_authenticator_type === 'true') {
+                jQuery('.wwa-type-th, .wwa-type-td').show();
+            } else {
+                jQuery('.wwa-type-th, .wwa-type-td').hide();
             }
             if (has_usernameless && configs.usernameless !== 'true') {
                 jQuery('#wwa_usernameless_tip').text(php_vars.i18n_27);
@@ -87,9 +100,21 @@ function updateList() {
             }
         },
         error: function () {
-            jQuery('#wwa-authenticator-list').html(`<tr><td colspan="${jQuery('.wwa-usernameless-th').css('display') === 'none' ? '5' : '6'}">${php_vars.i18n_8}</td></tr>`);
+            jQuery('#wwa-authenticator-list').html(`<tr><td colspan="${getColspan()}">${php_vars.i18n_8}</td></tr>`);
         }
     })
+}
+
+// Compute current number of visible columns for colspan
+function getColspan() {
+    let cols = 4; // Identifier, Registered, Last used, Action
+    if (jQuery('.wwa-type-th').length > 0 && jQuery('.wwa-type-th').css('display') !== 'none') {
+        cols++;
+    }
+    if (jQuery('.wwa-usernameless-th').length > 0 && jQuery('.wwa-usernameless-th').css('display') !== 'none') {
+        cols++;
+    }
+    return cols;
 }
 
 /** Code Base64URL into Base64
@@ -140,6 +165,10 @@ jQuery('.wwa-cancel').click((e) => {
     jQuery('#wwa-verify-block').hide();
 })
 
+// Prevent WebAuthn registration fields from triggering WordPress's unsaved changes dialog.
+// The form="wwa-registration" attribute on these inputs disassociates them from #your-profile,
+// so they are excluded from jQuery serialize() comparisons in user-profile.js.
+
 jQuery('#wwa_authenticator_name').keydown((e) => {
     if (e.keyCode === 13) {
         jQuery('#wwa-bind').trigger('click');
@@ -160,16 +189,19 @@ jQuery('#wwa-bind').click((e) => {
     jQuery('#wwa-bind').attr('disabled', 'disabled');
     jQuery('#wwa_authenticator_name').attr('disabled', 'disabled');
     jQuery('.wwa_authenticator_usernameless').attr('disabled', 'disabled');
-    jQuery('#wwa_authenticator_type').attr('disabled', 'disabled');
+    if (configs.show_authenticator_type === 'true') {
+        jQuery('#wwa_authenticator_type').attr('disabled', 'disabled');
+    }
     jQuery.ajax({
         url: php_vars.ajax_url,
         type: 'GET',
         data: {
             action: 'wwa_create',
             name: jQuery('#wwa_authenticator_name').val(),
-            type: jQuery('#wwa_authenticator_type').val(),
+            type: configs.show_authenticator_type === 'true' ? jQuery('#wwa_authenticator_type').val() : (configs.allow_authenticator_type !== 'none' ? configs.allow_authenticator_type : 'none'),
             usernameless: jQuery('.wwa_authenticator_usernameless:checked').val() ? jQuery('.wwa_authenticator_usernameless:checked').val() : 'false',
-            user_id: php_vars.user_id
+            user_id: php_vars.user_id,
+            _ajax_nonce: php_vars._ajax_nonce
         },
         success: function (data) {
             if (typeof data === 'string') {
@@ -178,7 +210,9 @@ jQuery('#wwa-bind').click((e) => {
                 jQuery('#wwa-bind').removeAttr('disabled');
                 jQuery('#wwa_authenticator_name').removeAttr('disabled');
                 jQuery('.wwa_authenticator_usernameless').removeAttr('disabled');
-                jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                if (configs.show_authenticator_type === 'true') {
+                    jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                }
                 updateList();
                 return;
             }
@@ -241,10 +275,11 @@ jQuery('#wwa-bind').click((e) => {
                     data: {
                         data: window.btoa(AuthenticatorAttestationResponse),
                         name: jQuery('#wwa_authenticator_name').val(),
-                        type: jQuery('#wwa_authenticator_type').val(),
+                        type: configs.show_authenticator_type === 'true' ? jQuery('#wwa_authenticator_type').val() : (configs.allow_authenticator_type !== 'none' ? configs.allow_authenticator_type : 'none'),
                         usernameless: jQuery('.wwa_authenticator_usernameless:checked').val() ? jQuery('.wwa_authenticator_usernameless:checked').val() : 'false',
                         clientid: clientID,
-                        user_id: php_vars.user_id
+                        user_id: php_vars.user_id,
+                        _ajax_nonce: php_vars._ajax_nonce
                     },
                     success: function (data) {
                         if (data.trim() === 'true') {
@@ -254,7 +289,9 @@ jQuery('#wwa-bind').click((e) => {
                             jQuery('#wwa_authenticator_name').removeAttr('disabled');
                             jQuery('#wwa_authenticator_name').val('');
                             jQuery('.wwa_authenticator_usernameless').removeAttr('disabled');
-                            jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                            if (configs.show_authenticator_type === 'true') {
+                                jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                            }
                             updateList();
                         } else {
                             // Register failed
@@ -262,7 +299,9 @@ jQuery('#wwa-bind').click((e) => {
                             jQuery('#wwa-bind').removeAttr('disabled');
                             jQuery('#wwa_authenticator_name').removeAttr('disabled');
                             jQuery('.wwa_authenticator_usernameless').removeAttr('disabled');
-                            jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                            if (configs.show_authenticator_type === 'true') {
+                                jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                            }
                             updateList();
                         }
                     },
@@ -271,7 +310,9 @@ jQuery('#wwa-bind').click((e) => {
                         jQuery('#wwa-bind').removeAttr('disabled');
                         jQuery('#wwa_authenticator_name').removeAttr('disabled');
                         jQuery('.wwa_authenticator_usernameless').removeAttr('disabled');
-                        jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                        if (configs.show_authenticator_type === 'true') {
+                            jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                        }
                         updateList();
                     }
                 })
@@ -282,7 +323,9 @@ jQuery('#wwa-bind').click((e) => {
                 jQuery('#wwa-bind').removeAttr('disabled');
                 jQuery('#wwa_authenticator_name').removeAttr('disabled');
                 jQuery('.wwa_authenticator_usernameless').removeAttr('disabled');
-                jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                if (configs.show_authenticator_type === 'true') {
+                    jQuery('#wwa_authenticator_type').removeAttr('disabled');
+                }
                 updateList();
             })
         },
@@ -291,7 +334,9 @@ jQuery('#wwa-bind').click((e) => {
             jQuery('#wwa-bind').removeAttr('disabled');
             jQuery('#wwa_authenticator_name').removeAttr('disabled');
             jQuery('.wwa_authenticator_usernameless').removeAttr('disabled');
-            jQuery('#wwa_authenticator_type').removeAttr('disabled');
+            if (configs.show_authenticator_type === 'true') {
+                jQuery('#wwa_authenticator_type').removeAttr('disabled');
+            }
             updateList();
         }
     })
@@ -428,7 +473,8 @@ function renameAuthenticator(id, name) {
                 id: id,
                 name: new_name,
                 target: 'rename',
-                user_id: php_vars.user_id
+                user_id: php_vars.user_id,
+                _ajax_nonce: php_vars._ajax_nonce
             },
             success: function () {
                 updateList();
@@ -456,7 +502,8 @@ function removeAuthenticator(id, name) {
                 action: 'wwa_modify_authenticator',
                 id: id,
                 target: 'remove',
-                user_id: php_vars.user_id
+                user_id: php_vars.user_id,
+                _ajax_nonce: php_vars._ajax_nonce
             },
             success: function () {
                 updateList();

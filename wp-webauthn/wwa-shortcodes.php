@@ -1,14 +1,22 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 function wwa_localize_frontend(){
+    wwa_init_new_options();
     wp_enqueue_script('wwa_frontend_js', plugins_url('js/frontend.js', __FILE__), array(), get_option('wwa_version')['version'], true);
     wp_localize_script('wwa_frontend_js', 'wwa_php_vars', array(
         'ajax_url' => admin_url('admin-ajax.php'),
+        '_ajax_nonce' => wp_create_nonce('wwa_ajax'),
         'admin_url' => admin_url(),
         'usernameless' => (wwa_get_option('usernameless_login') === false ? "false" : wwa_get_option('usernameless_login')),
         'remember_me' => (wwa_get_option('remember_me') === false ? "false" : wwa_get_option('remember_me')),
         'allow_authenticator_type' => (wwa_get_option('allow_authenticator_type') === false ? "none" : wwa_get_option('allow_authenticator_type')),
+        'show_authenticator_type' => (wwa_get_option('show_authenticator_type') === false ? "true" : wwa_get_option('show_authenticator_type')),
+        'terminology' => (wwa_get_option('terminology') === false ? 'passkey' : wwa_get_option('terminology')),
         'i18n_1' => __('Ready', 'wp-webauthn'),
-        'i18n_2' => __('Authenticate with WebAuthn', 'wp-webauthn'),
+        'i18n_2' => wwa_get_option('terminology') === 'webauthn' ? __('Authenticate with WebAuthn', 'wp-webauthn') : __('Authenticate with a passkey', 'wp-webauthn'),
         'i18n_3' => __('Hold on...', 'wp-webauthn'),
         'i18n_4' => __('Please proceed...', 'wp-webauthn'),
         'i18n_5' => __('Authenticating...', 'wp-webauthn'),
@@ -49,16 +57,16 @@ function wwa_localize_frontend(){
 
 // Login form
 function wwa_login_form_shortcode($vals){
-    extract(shortcode_atts(
+    $atts = shortcode_atts(
         array(
             'traditional' => 'true',
             'username' => '',
             'auto_hide' => 'true',
             'to' => ''
-        ), $vals)
+        ), $vals
     );
 
-    if($auto_hide === "true" && current_user_can("read")){
+    if($atts['auto_hide'] === "true" && current_user_can("read")){
         return '';
     }
 
@@ -70,24 +78,24 @@ function wwa_login_form_shortcode($vals){
 
     $html_form = '<div class="wwa-login-form">';
 
-    $args = array('echo' => false, 'value_username' => sanitize_user($username));
+    $args = array('echo' => false, 'value_username' => sanitize_user($atts['username']));
     $to_wwa = '';
-    if($to !== ""){
-        $args['redirect'] = sanitize_url($to);
+    if($atts['to'] !== ""){
+        $args['redirect'] = sanitize_url($atts['to']);
         $to_wwa = '<input type="hidden" name="wwa-redirect-to" class="wwa-redirect-to" id="wwa-redirect-to" value="'.$args["redirect"].'">';
     }
 
-    if($traditional === 'true' && wwa_get_option('first_choice') !== 'webauthn'){
-        $html_form .= '<div class="wwa-login-form-traditional">'.wp_login_form($args).'<br><a class="wwa-t2w" href="#"><span>'.__('Authenticate with WebAuthn', 'wp-webauthn').'</span></a></div>';
+    if($atts['traditional'] === 'true' && wwa_get_option('first_choice') !== 'webauthn'){
+        $html_form .= '<div class="wwa-login-form-traditional">'.wp_login_form($args).'<br><a class="wwa-t2w" href="#"><span>'.(wwa_get_option('terminology') === 'webauthn' ? __('Authenticate with WebAuthn', 'wp-webauthn') : __('Authenticate with a passkey', 'wp-webauthn')).'</span></a></div>';
     }
 
     $html_form .= '
     <div class="wwa-login-form-webauthn">
         <p class="wwa-login-username">
             <label for="wwa-user-name">'.(wwa_get_option('email_login') !== 'true' ? __('Username', 'wp-webauthn') : __('Username or Email Address')).'</label>
-            <input type="text" name="wwa-user-name" id="wwa-user-name" class="wwa-user-name" value="'.esc_attr(sanitize_user($username, true)).'" size="20">
+            <input type="text" name="wwa-user-name" id="wwa-user-name" class="wwa-user-name" value="'.esc_attr(sanitize_user($atts['username'], true)).'" size="20">
         </p>
-        <div class="wp-webauthn-notice">'.__('Authenticate with WebAuthn', 'wp-webauthn').'</div>
+        <div class="wp-webauthn-notice">'.(wwa_get_option('terminology') === 'webauthn' ? __('Authenticate with WebAuthn', 'wp-webauthn') : __('Authenticate with a passkey', 'wp-webauthn')).'</div>
             <p class="wwa-login-submit-p">'.$to_wwa.'<div class="wwa-form-left">'.((wwa_get_option('remember_me') === false ? 'false' : wwa_get_option('remember_me') !== 'false') ? '<label class="wwa-remember-label"><input name="wwa-rememberme" type="checkbox" id="wwa-rememberme" value="forever"> '.__('Remember Me').'</label>' : '').'<a class="wwa-w2t" href="#">'.__('Authenticate with password', 'wp-webauthn').'</a></div><input type="button" name="wwa-login-submit" id="wwa-login-submit" class="wwa-login-submit button button-primary" value="'.__('Auth', 'wp-webauthn').'"></p>
         </div>
     </div>';
@@ -98,15 +106,15 @@ add_shortcode('wwa_login_form', 'wwa_login_form_shortcode');
 
 // Register form
 function wwa_register_form_shortcode($vals){
-    extract(shortcode_atts(
+    $atts = shortcode_atts(
         array(
             'display' => 'true'
-        ), $vals)
+        ), $vals
     );
 
     // If always display
     if(!current_user_can("read")){
-        if($display === "true"){
+        if($atts['display'] === "true"){
             return '<div class="wwa-register-form"><p class="wwa-bind">'.__('You haven\'t logged in yet.', 'wp-webauthn').'</p></div>';
         }else{
             return '';
@@ -120,15 +128,17 @@ function wwa_register_form_shortcode($vals){
     wp_enqueue_style('wwa_frondend_css', plugins_url('css/frontend.css', __FILE__), array(), get_option('wwa_version')['version']);
 
     $allowed_type = wwa_get_option('allow_authenticator_type') === false ? 'none' : wwa_get_option('allow_authenticator_type');
-    return '
-    <div class="wwa-register-form">
+    $show_type = wwa_get_option('show_authenticator_type') !== 'false';
+    $type_selector = $show_type ? '
         <label for="wwa-authenticator-type">'.__('Type of authenticator', 'wp-webauthn').'</label>
         <select name="wwa-authenticator-type" class="wwa-authenticator-type" id="wwa-authenticator-type">
             <option value="none" class="wwa-type-none"'.($allowed_type !== 'none' ? ' disabled' : '').'>'.__('Any', 'wp-webauthn').'</option>
             <option value="platform" class="wwa-type-platform"'.($allowed_type === 'cross-platform' ? ' disabled' : '').'>'.__('Platform (e.g. built-in fingerprint sensors)', 'wp-webauthn').'</option>
             <option value="cross-platform" class="wwa-type-cross-platform"'.($allowed_type === 'platform' ? ' disabled' : '').'>'.__('Roaming (e.g. USB security keys)', 'wp-webauthn').'</option>
         </select>
-        <p class="wwa-bind-name-description">'.__('If a type is selected, the browser will only prompt for authenticators of selected type. <br> Regardless of the type, you can only log in with the very same authenticators you\'ve registered.', 'wp-webauthn').'</p>
+        <p class="wwa-bind-name-description">'.__('If a type is selected, the browser will only prompt for authenticators of selected type. <br> Regardless of the type, you can only log in with the very same authenticators you\'ve registered.', 'wp-webauthn').'</p>' : '';
+    return '
+    <div class="wwa-register-form">'.$type_selector.'
         <label for="wwa-authenticator-name">'.__('Authenticator identifier', 'wp-webauthn').'</label>
         <input required name="wwa-authenticator-name" type="text" class="wwa-authenticator-name" id="wwa-authenticator-name">
         <p class="wwa-bind-name-description">'.__('An easily identifiable name for the authenticator. <strong>DOES NOT</strong> affect the authentication process in anyway.', 'wp-webauthn').'</p>'.(
@@ -140,15 +150,15 @@ add_shortcode('wwa_register_form', 'wwa_register_form_shortcode');
 
 // Verify button
 function wwa_verify_button_shortcode($vals){
-    extract(shortcode_atts(
+    $atts = shortcode_atts(
         array(
             'display' => 'true'
-        ), $vals)
+        ), $vals
     );
 
     // If always display
     if(!current_user_can("read")){
-        if($display === "true"){
+        if($atts['display'] === "true"){
             return '<p class="wwa-test">'.__('You haven\'t logged in yet.', 'wp-webauthn').'</p>';
         }else{
             return '';
@@ -166,23 +176,26 @@ add_shortcode('wwa_verify_button', 'wwa_verify_button_shortcode');
 
 // Authenticator list
 function wwa_list_shortcode($vals){
-    extract(shortcode_atts(
+    $atts = shortcode_atts(
         array(
             'display' => 'true'
-        ), $vals)
+        ), $vals
     );
 
-    $thead = '<div class="wwa-table-container"><table class="wwa-list-table"><thead><tr><th>'.__('Identifier', 'wp-webauthn').'</th><th>'.__('Type', 'wp-webauthn').'</th><th>'._x('Registered', 'time', 'wp-webauthn').'</th><th>'.__('Last used', 'wp-webauthn').'</th><th class="wwa-usernameless-th">'.__('Usernameless', 'wp-webauthn').'</th><th>'.__('Action', 'wp-webauthn').'</th></tr></thead><tbody class="wwa-authenticator-list">';
-    $tbody = '<tr><td colspan="5">'.__('Loading...', 'wp-webauthn').'</td></tr>';
-    $tfoot = '</tbody><tfoot><tr><th>'.__('Identifier', 'wp-webauthn').'</th><th>'.__('Type', 'wp-webauthn').'</th><th>'._x('Registered', 'time', 'wp-webauthn').'</th><th>'.__('Last used', 'wp-webauthn').'</th><th class="wwa-usernameless-th">'.__('Usernameless', 'wp-webauthn').'</th><th>'.__('Action', 'wp-webauthn').'</th></tr></tfoot></table></div><p class="wwa-authenticator-list-usernameless-tip"></p><p class="wwa-authenticator-list-type-tip"></p>';
+    $show_type = wwa_get_option('show_authenticator_type') !== 'false';
+    $type_th = $show_type ? '<th class="wwa-type-th">'.__('Type', 'wp-webauthn').'</th>' : '';
+    $loading_colspan = $show_type ? '5' : '4';
+    $thead = '<div class="wwa-table-container"><table class="wwa-list-table"><thead><tr><th>'.__('Identifier', 'wp-webauthn').'</th>'.$type_th.'<th>'._x('Registered', 'time', 'wp-webauthn').'</th><th>'.__('Last used', 'wp-webauthn').'</th><th class="wwa-usernameless-th">'.__('Usernameless', 'wp-webauthn').'</th><th>'.__('Action', 'wp-webauthn').'</th></tr></thead><tbody class="wwa-authenticator-list">';
+    $tbody = '<tr><td colspan="'.$loading_colspan.'">'.__('Loading...', 'wp-webauthn').'</td></tr>';
+    $tfoot = '</tbody><tfoot><tr><th>'.__('Identifier', 'wp-webauthn').'</th>'.$type_th.'<th>'._x('Registered', 'time', 'wp-webauthn').'</th><th>'.__('Last used', 'wp-webauthn').'</th><th class="wwa-usernameless-th">'.__('Usernameless', 'wp-webauthn').'</th><th>'.__('Action', 'wp-webauthn').'</th></tr></tfoot></table></div><p class="wwa-authenticator-list-usernameless-tip"></p><p class="wwa-authenticator-list-type-tip"></p>';
 
     // If always display
     if(!current_user_can("read")){
-        if($display === "true"){
+        if($atts['display'] === "true"){
             // Load CSS
             wp_enqueue_style('wwa_frondend_css', plugins_url('css/frontend.css', __FILE__), array(), get_option('wwa_version')['version']);
 
-            return $thead.'<tr><td colspan="5">'.__('You haven\'t logged in yet.', 'wp-webauthn').'</td></tr>'.$tfoot;
+            return $thead.'<tr><td colspan="'.$loading_colspan.'">'.__('You haven\'t logged in yet.', 'wp-webauthn').'</td></tr>'.$tfoot;
         }else{
             return '';
         }

@@ -1,7 +1,11 @@
 <?php
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // Add menu
 function wwa_admin_menu(){
-    add_options_page('WP-WebAuthn' , 'WP-WebAuthn', 'read', 'wwa_admin','wwa_display_main_menu');
+    add_options_page('WP-WebAuthn' , 'WP-WebAuthn', 'manage_options', 'wwa_admin','wwa_display_main_menu');
 }
 function wwa_display_main_menu(){
     include('wwa-admin-content.php');
@@ -28,11 +32,11 @@ function wwa_save_user_profile_fields($user_id){
     }
 
     if(!isset($_POST['webauthn_only'])){
-        update_user_meta($user_id, 'webauthn_only', 'false');
+        update_user_meta($user_id, 'wwa_webauthn_only', 'false');
     }elseif(sanitize_text_field(wp_unslash($_POST['webauthn_only'])) === 'true'){
-        update_user_meta($user_id, 'webauthn_only', 'true');
+        update_user_meta($user_id, 'wwa_webauthn_only', 'true');
     }else{
-        update_user_meta($user_id, 'webauthn_only', 'false');
+        update_user_meta($user_id, 'wwa_webauthn_only', 'false');
     }
 }
 add_action('personal_options_update', 'wwa_save_user_profile_fields');
@@ -48,3 +52,12 @@ function wwa_user_profile_fields_check(){
     }
 }
 add_action('plugins_loaded', 'wwa_user_profile_fields_check');
+
+function wwa_network_admin_menu(){
+    add_submenu_page('settings.php', 'WP-WebAuthn', 'WP-WebAuthn', 'manage_network_options', 'wwa_network_admin', 'wwa_display_network_settings');
+}
+if(is_multisite()){
+    include('wwa-network-admin-content.php');
+    add_action('network_admin_menu', 'wwa_network_admin_menu');
+    add_action('network_admin_edit_wwa_network_options_update', 'wwa_handle_network_options_save');
+}
